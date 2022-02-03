@@ -13,6 +13,78 @@
     </head>
 
     <body>
+        <div class="menu">
+            <h3>Enter a zip code or scroll the map to see air pollution levels for different locations</h3>
+            <form>
+                <label for="zip">Zip Code:</label><br>
+                <input type="text" id="enterZip" name="zip"><br>
+            </form>
+            <button type="button" id="ok">Search this Zip</button><br>
+            <button type="button" id="here">Search this map location</button>
+        </div>
+        <div id="box">
+            <div class="boxlet1">
+                <button type="button" id="Zin">+</button><br>
+                <button type="button" id="Zout">-</button>
+    
+            </div>
+            <div class="boxlet2">
+                <div class="TitleWrap">
+                    <h2>PM 2.5 levels</h2>
+                </div>
+                <div id="disp">
+                    <div id="map" class="map"></div>
+                </div>
+    
+                <div id="infobox">
+    
+                </div>
+            </div>
+            <div class="boxlet3">
+                <br>
+                <div id="localLevels">
+                    <div class="TitleWrap">
+                        <h2 id="levelsTitle"></h2>
+                    </div> 
+                    <div id="levelsContent">
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                        <p></p>
+                    </div>
+                </div>
+                <br>
+                <div id="previous">
+                    <div class="TitleWrap">
+                        <h2>Previous Searches</h2>
+                    </div>
+                    <div id="disp">
+                        <button type="button" id="seePrev">Previous</button>
+                        <div id="displayedSearches">
+                            <div>
+                                <h3></h3>
+                                <p></p>
+                            </div>
+                            <div>
+                                <h3></h3>
+                                <p></p>
+                            </div>
+                            <div>
+                                <h3></h3>
+                                <p></p>
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="seeNext">Next</button>
+                    </div>
+                    <button type="button" id="eraseSearches">Erase Search History</button>
+                    
+                </div>
+            </div>
+        </div>
         <div id="navbarMenu" class="navbar">
             <div class="navbar-brand">
 

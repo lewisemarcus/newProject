@@ -199,8 +199,6 @@ function drawDot(lon, lat, color=[220,220,220, .5], data=null) {
         })
     })
 
-
-
     if (data) {
         feature.set("pollutionInfo", data, true)
     }
@@ -275,4 +273,160 @@ function waitForCond(obj, cond, update=() => {return obj}, state=true) {
         }
         check(obj)
     })
+}
+//change zip code when user adds zip code and clicks SUMBIT
+function changeZip() {
+    zip = locZip.value
+    const zipUrl = "https://nominatim.openstreetmap.org/search?postalcode=" + zip + "&country=USA&format=json"
+    fetch(zipUrl).then(function (response) {
+        return response.json()
+    }).then(function (data) {
+        lat = data[0].lat
+        lon = data[0].lon
+        try{
+            city = data[0].display_name.substring(0, data[0].display_name.indexOf(","))
+        }catch{
+            city="???"
+        }
+        clearM()
+        drawGrid(lat, lon, gridSize, city)
+    }).catch(function () {
+        zip = "enter valid zip"
+        locZip.value = ""
+        locZip.placeholder = zip
+    })
+}
+
+function changeCoord() {
+    const coords = ol.proj.transform(map.getView().getCenter(), 'EPSG:3857', 'EPSG:4326')
+    lat = coords[1]
+    lon = coords[0]
+
+    z = 16///////////////////////////////////////////////////////////change this if we keep the zoom level
+    const locUrl = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon + "&zoom=" + z
+    fetch(locUrl).then(function (response) {
+        return response.json()
+    }).then(function (data) {
+        try{
+            city = data.display_name.substring(data.display_name.indexOf(",") + 1)//extract city, at this zoom level(16)it is second 
+            city = city.substring(0, city.indexOf(","))
+        }catch{
+            city="???"
+        }
+        try{
+            const matches = data.display_name.match(/\b\d{5}\b/g)//extract zip if present
+            if (matches) {//check if zip found
+                zip = matches[0]
+            } else {
+                zip = "?????"
+            }
+        }catch{
+            zip="?????"
+        }
+        locZip.value = zip
+        //erase previous map and recreate map div
+        clearM()
+        drawGrid(lat, lon, gridSize, city)
+    }).catch(function () {
+        clearM()
+        drawGrid(lat, lon, gridSize, city)
+        city="???"
+        zip="?????"
+
+        console.log("ERROR CHANGING LOCATION")
+    })
+}
+
+function clearM() {
+    disp.children[0].remove()
+    const m = document.createElement("div")
+    m.setAttribute("class", "map")
+    m.setAttribute("id", "map")
+    disp.append(m)
+}
+
+function zout(){
+    if (zoomLevel>4){
+        lonInc*=4;
+        latInc*=4;
+        zoomLevel-=2;
+        changeCoord();
+    }
+}
+
+function zin(){
+    if(zoomLevel<12){
+        lonInc*=.25;
+        latInc*=.25;
+        zoomLevel+=2;
+        changeCoord();
+    }
+}
+
+function displaySearches(index){
+    if(index==0){
+        PREV.setAttribute("style","visibility:hidden");
+    }else{
+        PREV.setAttribute("style","visibility:visible");
+    }
+    
+    if (storedSearches[0].length-index<4){
+        let w=0;
+        for(let v=index; v<storedSearches[0].length; v++){
+            HDISP.children[w].children[0].textContent=storedSearches[0][v];
+            HDISP.children[w].children[1].textContent=storedSearches[1][v];
+            w++;
+        }
+        NEXT.setAttribute("style","visibility:hidden");
+        
+    }else{
+        let w=0;
+        for(let v=index; v<index+3; v++){
+            HDISP.children[w].children[0].textContent=storedSearches[0][v];
+            HDISP.children[w].children[1].textContent=storedSearches[1][v];
+            w++;
+        }
+        NEXT.setAttribute("style","visibility:visible");
+    
+    }
+    if(storedSearches[0].length==0){
+        ERASE.setAttribute("style","visibility:hidden");
+    }else{
+        ERASE.setAttribute("style","visibility:visible");
+
+    }
+
+}
+
+function seePrev(){
+    fs-=3;
+    eraseSearchDisplay()
+    displaySearches(fs)
+}
+
+function seeNext(){
+    fs+=3;
+    eraseSearchDisplay()
+    displaySearches(fs)
+
+}
+
+function eraseSearches(){
+    storedSearches = [[],[]];
+    localStorage.clear();//erase stored scoreboard
+    eraseSearchDisplay();
+    return;
+
+}
+
+function eraseSearchDisplay(){
+    ERASE.setAttribute("style","visibility:hidden");
+    NEXT.setAttribute("style","visibility:hidden");
+    PREV.setAttribute("style","visibility:hidden");
+    for(let v=0; v<3; v++){
+        HDISP.children[v].children[0].textContent="";
+        HDISP.children[v].children[1].textContent="";
+    }
+
+
 }
