@@ -284,26 +284,6 @@ function drawGrid() {
                 let [resLat, resLon] = data.latLon
                 if (isWater(resLon, resLat)) return
                 //console.log(data.city.name.split(','))
-                reverseGeocode(resLat, resLon)
-                if (true) {
-                        llTitle.textContent = "The pollution levels in " + city + " are:"
-                        for (let m = 0; m < 7; m++) {
-                            llContent.children[m].textContent = "";
-                        }
-                        z = 0;
-                        let sstr = "";
-                        for (const potype of pollTypes) {
-                            if (potype in data.iaqi) {
-                                llContent.children[z].textContent = potype + ": " + data.iaqi[potype].v;
-                                sstr = sstr + llContent.children[z].textContent + "  ";
-                                z++;
-
-                            }
-                        }
-                        //log the central point to stored searches
-                        storedSearches[0].push(city + " " + zip);
-                        storedSearches[1].push(sstr)
-                }
 
                 let d = []
                 let val = 0
@@ -321,7 +301,25 @@ function drawGrid() {
             })
         }
     }
-    console.log(city)
+    getPolutionData(ogLon, ogLat)
+    .then(function(data) {
+        llTitle.textContent = "The pollution levels in " + city + " are:"
+        for (let m = 0; m < 7; m++) {
+            llContent.children[m].textContent = "";
+        }
+        z = 0;
+        let sstr = "";
+        for (const potype of pollTypes) {
+            if (potype in data.iaqi) {
+                llContent.children[z].textContent = potype + ": " + data.iaqi[potype].v;
+                sstr = sstr + llContent.children[z].textContent + "  ";
+                z++;
+            }
+        }
+        //log the central point to stored searches
+        storedSearches[0].push(city + " " + zip);
+        storedSearches[1].push(sstr)
+    })
 }
 
 function waitForCond(obj, cond, update = () => { return obj }, state = true) {
@@ -362,14 +360,6 @@ function changeZip() {
         locZip.placeholder = zip
     })
 }
-function reverseGeocode(lat, lon) {
-    fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon)
-      .then(function(response) {
-             return response.json();
-         }).then(function(json) {
-             console.log(json);
-         });
- }
 
 function changeCoord() {
     const coords = ol.proj.transform(map.getView().getCenter(), 'EPSG:3857', 'EPSG:4326')

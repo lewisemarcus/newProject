@@ -107,11 +107,6 @@ function drawGrid(lati, lonj, s, City) { //s is width and height of grid
     displaySearches(fs);
     localStorage.place7896 = JSON.stringify(storedSearches[0]);
     localStorage.levels7896 = JSON.stringify(storedSearches[1]);
-
-    
-    
-    
-    
     
     const half = s / 2 - .5 //number of points on each side of central point
     console.log(s)
@@ -142,7 +137,6 @@ function drawGrid(lati, lonj, s, City) { //s is width and height of grid
                             llContent.children[z].textContent = potype + ": " + data.data.iaqi[potype].v;
                             sstr=sstr+llContent.children[z].textContent+"  ";
                             z++;
-
                         }
                     }
                     //log the central point to stored searches
@@ -171,10 +165,10 @@ function drawGrid(lati, lonj, s, City) { //s is width and height of grid
                 features[p].set('id', str)
                 features[p].setStyle(colorStyle)
                 //Applies dynamic size adjustment to each feature.
-                /*features[p].setStyle(function (feature, resolution) {
+                features[p].setStyle(function (feature, resolution) {
                     colorStyle.getImage().setScale(map.getView().getResolutionForZoom(10) / resolution)
                     return colorStyle
-                })*/
+                })
                 p++
             })
                 .catch(function () {//Catch occurs when no data available                    
@@ -192,10 +186,10 @@ function drawGrid(lati, lonj, s, City) { //s is width and height of grid
                     }
                     features[p].setStyle(greyStyle)
                     //Applies dynamic size adjustment to each feature.
-                    /*features[p].setStyle(function (feature, resolution) {
+                    features[p].setStyle(function (feature, resolution) {
                         greyStyle.getImage().setScale(map.getView().getResolutionForZoom(10) / resolution)
                         return greyStyle
-                    })*/
+                    })
                     p++
                     console.log("NO DATA FOUND FOR CIRCLE")
                 })
@@ -251,7 +245,6 @@ function drawGrid(lati, lonj, s, City) { //s is width and height of grid
                                     }
                                 })
                         }
-
                         //On mouse hold down and drag, nothing happens.
                         map.on('pointermove', function (evt) {
                             if (evt.dragging) {
@@ -267,17 +260,11 @@ function drawGrid(lati, lonj, s, City) { //s is width and height of grid
                             })
                             displayFeatureInfo(pixel)
                         })
-
                         const popup = new ol.Overlay( {
                             element: overlayContainerEl,
                             zIndex: 1                
                         })
-                        map.addOverlay(popup)
-
-                        //Add click event to each feature.
-                        /*map.on('click', function (evt) {
-
-                        })*/                   
+                        map.addOverlay(popup)               
                         //Stops mousewheel zoom.
                         map.getInteractions().forEach(function (interaction) {
                             if (interaction instanceof ol.interaction.MouseWheelZoom) {
@@ -452,6 +439,4 @@ function eraseSearchDisplay(){
         HDISP.children[v].children[0].textContent="";
         HDISP.children[v].children[1].textContent="";
     }
-
-
 }
