@@ -54,7 +54,7 @@ body {
     bottom: 12px;
     left: -50px;
     text-align: center;
-    width: 90px;
+    width: 120px;
 }
 .ol-popup:after, .ol-popup:before {
     top: 100%;
@@ -81,73 +81,4 @@ body {
 sub {
     font-size: xx-small; 
     vertical-align: sub;
-}
-*{
-    font-family:sans-serif;    
-}
-
-.menu{
-    background-color:rgb(119, 119, 235);
-    display:flex;
-    justify-content:center;
-}
-
-.map {
-    height: 500px;
-    width: 500px;  
-    margin:auto;  
-}
-
-#info{
-    height:45px;  
-}
-#infobox{
-    width: 600px; 
-    display:flex;
-    justify-content:left;
-}
-#box{
-    display:flex;
-    justify-content:center;
-}
-.boxlet1{
-    height:500px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-}
-.boxlet1 button{
-    font-size:25px;
-    text-align:center;
-}
-.TitleWrap{
-    text-align:center;
-
-}
-#previous,#localLevels{
-    width:500px;
-}
-#localLevels, #previous{
-    border: 5px solid rgba(34, 64, 163, 0.616);
-    border-radius:3px
-}
-
-#levelsContent p{
-    width:50px;
-}
-
-#levelsContent{
-    display:flex;
-    flex-wrap:flex;
-    
-    
-}
-
-.overlay-info {
-    width: 20px;
-    height: 20px;
-}
-
-.overlay-text {
-    font-size: 12px;
 }

@@ -10,8 +10,6 @@ window.onload = function () {
         let lat = data["latitude"], lon = data["longitude"]
         city = data.city ?? "Unnamed"
         zip = data.postal ?? "00000"
-        ogLat = lat
-        ogLon = lon
 
         if (lat && lon) {
             goToCoord(lon, lat, drawGrid)
