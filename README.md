@@ -8,7 +8,7 @@ A work in progress.<br>
 
 
 Try it out here:<br>
-<a href="https://lewisemarcus.github.io/newProject/">LINK TO WEBSITE</a><b>
+<a href="https://lewisemarcus.github.io/PollutionMap/">LINK TO WEBSITE</a><b>
 
 
 Contributors:

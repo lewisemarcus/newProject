@@ -8,34 +8,27 @@
         <link rel="stylesheet" href="assets/css/style.css" type="text/css">
 
         <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.12.0/build/ol.js"></script>
-        <script type="text/javascript" src="assets/js/base.js"></script>
+        
         <title>Bluer Skies</title>
     </head>
 
     <body>
-        <div class="menu">
-            <h3>Enter a zip code or scroll the map to see air pollution levels for different locations</h3>
-            <form>
-                <label for="zip">Zip Code:</label><br>
-                <input type="text" id="enterZip" name="zip"><br>
-            </form>
-            <button type="button" id="ok">Search this Zip</button><br>
-            <button type="button" id="here">Search this map location</button>
-        </div>
-        <div id="box">
-            <div class="boxlet1">
-                <button type="button" id="Zin">+</button><br>
-                <button type="button" id="Zout">-</button>
-    
+        <header>
+            <div class="menu">
+                <h3>Enter a zip code or scroll the map to see air pollution levels for different locations</h3>
+                <form>
+                    <label for="zip">Zip Code:</label><br>
+                    <input type="text" id="enterZip" name="zip"><br>
+                </form>
+                <button type="button" id="ok">Search this Zip</button><br>
+                <button type="button" id="here">Search this map location</button>
             </div>
+        </header>
+        <div id="box">
             <div class="boxlet2">
                 <div class="TitleWrap">
                     <h2>PM 2.5 levels</h2>
                 </div>
-                <div id="disp">
-                    <div id="map" class="map"></div>
-                </div>
-    
                 <div id="infobox">
     
                 </div>
@@ -99,6 +92,7 @@
         <div id="js-map" class="map"></div>
         
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+        <script type="text/javascript" src="assets/js/base.js"></script>
         <script type="text/javascript" src="assets/js/scr.js"></script>
     </body>
 </html>

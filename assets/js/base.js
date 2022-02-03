@@ -1,8 +1,44 @@
-var view, map, fetched, city, zip, source, js_map, highlighted, old, container, content, closer, overlay, popped
-const AQkey = "03e6687524e359bbf0987c0f2ede90cb945e4404"
+var view, map, fetched, city, zip, source, js_map, highlighted, old, container, content, closer, overlay, popped, circleRad
 
+const AQkey = "03e6687524e359bbf0987c0f2ede90cb945e4404"
+const constRad = 15
 const pollTypes = ["pm25", "no2", "co", "so2", "nh3", "o3", "pm10"]
 const pollVals = ["PM<sub>2.5</sub> : ", "NO<sub>2</sub> : ", "CO : ", "SO<sub>2</sub> : ", "NH<sub>3</sub> : ", "O<sub>3</sub> : ", "PM<sub>10</sub> : "]
+
+//DOM constiables
+const llTitle = document.getElementById("levelsTitle")
+const llContent = document.getElementById("levelsContent")
+const locZip = document.getElementById("enterZip")
+locZip.value = ""
+var disp = document.getElementById("disp");
+
+//map buttons
+const OK = document.getElementById("ok")
+OK.addEventListener("click", changeZip)
+const HERE = document.getElementById("here")
+HERE.addEventListener("click", changeCoord)
+
+//local storage stuff
+var HDISP = document.getElementById("displayedSearches")
+var fs = 0//index of first stored element to display
+var PREV = document.getElementById("seePrev")
+PREV.addEventListener("click", seePrev)
+var NEXT = document.getElementById("seeNext")
+NEXT.addEventListener("click", seeNext)
+var ERASE = document.getElementById("eraseSearches")
+ERASE.addEventListener("click", eraseSearches)
+
+if (localStorage.getItem('place7896') == null) {
+    var storedSearches = [[], []];
+    for (let v = 0; v < 3; v++) {
+        HDISP.children[v].children[0].textContent = "";
+        HDISP.children[v].children[1].textContent = "";
+    }
+    displaySearches(fs)
+} else {
+    var storedSearches = [JSON.parse(localStorage.place7896), JSON.parse(localStorage.levels7896)];
+    displaySearches(fs)
+}
 
 function generateMap() {
     view = new ol.View({
@@ -23,7 +59,7 @@ function generateMap() {
         element: container,
         autoPan: {
             animation: {
-              duration: 250,
+                duration: 250,
             }
         }
     })
@@ -52,16 +88,21 @@ function generateMap() {
             let imgFill = feature.getStyle()
 
             let colorStyle = new ol.style.Style({
-                    image: new ol.style.Circle({
-                        radius: 15,
-                        fill: new ol.style.Fill({ 
-                            color: col
-                        })
+                image: new ol.style.Circle({
+                    radius: circleRad,
+                    fill: new ol.style.Fill({
+                        color: col
                     })
+                })
             })
 
             feature.setStyle(colorStyle)
-            
+
+            feature.setStyle(function (feature, resolution) {
+                colorStyle.getImage().setScale(map.getView().getResolutionForZoom(10) / resolution)
+                return colorStyle
+            })
+
             let ext = feature.getGeometry().getExtent();
             let coordinate = ol.extent.getCenter(ext)
 
@@ -82,9 +123,9 @@ function generateMap() {
 function popupInfo(pos, info) {
     if (popped) return
     overlay.setPosition(pos)
-    
+
     content.innerHTML = ""
-    
+
     for (i = 0; i < info.length; i++) {
         let p = document.createElement("p")
         p.innerHTML = info[i]
@@ -94,12 +135,12 @@ function popupInfo(pos, info) {
     popped = true
 }
 
-function clearPopup () {
+function clearPopup() {
     overlay.setPosition(undefined)
     popped = false
 }
 
-function goToCoord(lon, lat, onDone=() => {}) {
+function goToCoord(lon, lat, onDone = () => { }) {
     if (map === undefined) {
         return
     }
@@ -118,7 +159,7 @@ function goToCoord(lon, lat, onDone=() => {}) {
         }
         onDone(Array.prototype.slice.call(arguments, 3))
     })
-    
+
 }
 
 function isWater(lon, lat) {
@@ -132,8 +173,8 @@ function isWater(lon, lat) {
 
     let blues = 0
 
-    const startX = xy[0] - Math.floor(width/2)
-    const startY = xy[1] - Math.floor(height/2)
+    const startX = xy[0] - Math.floor(width / 2)
+    const startY = xy[1] - Math.floor(height / 2)
 
     for (vert = 0; vert < height; vert++) {
         for (hor = 0; hor < width; hor++) {
@@ -149,7 +190,7 @@ function isWater(lon, lat) {
     return blues <= width * height * .2
 }
 
-function zoom(z=4) {
+function zoom(z = 4) {
     if (map === undefined) {
         return
     }
@@ -164,7 +205,7 @@ function getPolutionData(lon, lat) {
     }).catch(error => {
         console.log("error: ", error)
     }).then(result => {
-        if (result.status !== "ok") return 
+        if (result.status !== "ok") return
         result.data.latLon = [lat, lon]
         return result.data
     })
@@ -172,9 +213,9 @@ function getPolutionData(lon, lat) {
 
 function getMapState() {
     if (!map) return
-    let view =  map.getView()
+    let view = map.getView()
     return {
-        center: view.getCenter(), 
+        center: view.getCenter(),
         zoom: view.getZoom(),
         x: view.getCenter()[0],
         y: view.getCenter()[1],
@@ -185,15 +226,15 @@ function getMapState() {
     }
 }
 
-function drawDot(lon, lat, color=[220,220,220, .5], data=null) {
+function drawDot(lon, lat, color = [220, 220, 220, .5], data = null) {
     let feature = new ol.Feature({
         geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
     })
 
     let colorStyle = new ol.style.Style({
         image: new ol.style.Circle({
-            radius: 15,
-            fill: new ol.style.Fill({ 
+            radius: circleRad,
+            fill: new ol.style.Fill({
                 color: color
             })
         })
@@ -204,21 +245,22 @@ function drawDot(lon, lat, color=[220,220,220, .5], data=null) {
     }
 
     feature.setStyle(colorStyle)
-    feature.setStyle(function (feature, resolution){
+
+    feature.setStyle(function (feature, resolution) {
         colorStyle.getImage().setScale(map.getView().getResolutionForZoom(10) / resolution)
         return colorStyle
     })
+
     source.addFeature(feature)
 
     return feature
 }
 
 function drawGrid() {
-    console.log("ran")
     source.clear()
 
     let glbox = map.getView().calculateExtent(map.getSize())
-    let box = ol.proj.transformExtent(glbox,'EPSG:3857','EPSG:4326')
+    let box = ol.proj.transformExtent(glbox, 'EPSG:3857', 'EPSG:4326')
 
     let right = box[2], left = box[0], top = box[3], bottom = box[1]
 
@@ -226,21 +268,41 @@ function drawGrid() {
     let height = top - bottom
 
     const rowSize = 9
-    const columnSize = Math.floor(rowSize * (width/height))
+    const columnSize = Math.floor(rowSize * (width / height))
 
-    const lonInc = width/columnSize
-    const latInc = height/rowSize
+    circleRad = constRad / (map.getView().getResolutionForZoom(10) / getMapState().resolution)
 
-    const startLat = bottom + latInc/2
-    const startLon = left + lonInc/2
+    const lonInc = width / columnSize
+    const latInc = height / rowSize
+
+    const startLat = bottom + latInc / 2
+    const startLon = left + lonInc / 2
 
     for (row = 0; row < rowSize; row++) {
         for (column = 0; column < columnSize; column++) {
             getPolutionData(startLon + lonInc * column, startLat + latInc * row).then(data => {
                 let [resLat, resLon] = data.latLon
                 if (isWater(resLon, resLat)) return
-                // if (resLat > top || resLon > right || resLat < bottom || resLon < left) return
-                // none = false
+                console.log(data.city.name.split(','))
+                if (data.city.name.split(',')[1] == city) {
+                        llTitle.textContent = "The pollution levels in " + city + " are:"
+                        for (let m = 0; m < 7; m++) {
+                            llContent.children[m].textContent = "";
+                        }
+                        z = 0;
+                        let sstr = "";
+                        for (const potype of pollTypes) {
+                            if (potype in data.iaqi) {
+                                llContent.children[z].textContent = potype + ": " + data.iaqi[potype].v;
+                                sstr = sstr + llContent.children[z].textContent + "  ";
+                                z++;
+
+                            }
+                        }
+                        //log the central point to stored searches
+                        storedSearches[0].push(city + " " + zip);
+                        storedSearches[1].push(sstr)
+                }
 
                 let d = []
                 let val = 0
@@ -258,9 +320,10 @@ function drawGrid() {
             })
         }
     }
+    console.log(city)
 }
 
-function waitForCond(obj, cond, update=() => {return obj}, state=true) {
+function waitForCond(obj, cond, update = () => { return obj }, state = true) {
     return new Promise(resolve => {
         function check(o) {
             if (o[cond] === state) {
@@ -283,13 +346,12 @@ function changeZip() {
     }).then(function (data) {
         lat = data[0].lat
         lon = data[0].lon
-        try{
+        try {
             city = data[0].display_name.substring(0, data[0].display_name.indexOf(","))
-        }catch{
-            city="???"
+        } catch {
+            city = "???"
         }
-        clearM()
-        drawGrid(lat, lon, gridSize, city)
+        drawGrid()
     }).catch(function () {
         zip = "enter valid zip"
         locZip.value = ""
@@ -302,131 +364,102 @@ function changeCoord() {
     lat = coords[1]
     lon = coords[0]
 
-    z = 16///////////////////////////////////////////////////////////change this if we keep the zoom level
-    const locUrl = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon + "&zoom=" + z
-    fetch(locUrl).then(function (response) {
-        return response.json()
-    }).then(function (data) {
-        try{
-            city = data.display_name.substring(data.display_name.indexOf(",") + 1)//extract city, at this zoom level(16)it is second 
-            city = city.substring(0, city.indexOf(","))
-        }catch{
-            city="???"
-        }
-        try{
-            const matches = data.display_name.match(/\b\d{5}\b/g)//extract zip if present
-            if (matches) {//check if zip found
-                zip = matches[0]
-            } else {
+    const locUrl = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon
+    fetch(locUrl)
+        .then(function (response) {
+            return response.json()
+        })
+        .then(function (data) {
+            try {
+                city = data.display_name.substring(data.display_name.indexOf(",") + 1)//extract city, at this zoom level(16)it is second 
+                city = city.substring(0, city.indexOf(","))
+            } catch {
+                city = "???"
+            }
+            try {
+                const matches = data.display_name.match(/\b\d{5}\b/g)//extract zip if present
+                if (matches) {//check if zip found
+                    zip = matches[0]
+                } else {
+                    zip = "?????"
+                }
+            } catch {
                 zip = "?????"
             }
-        }catch{
-            zip="?????"
-        }
-        locZip.value = zip
-        //erase previous map and recreate map div
-        clearM()
-        drawGrid(lat, lon, gridSize, city)
-    }).catch(function () {
-        clearM()
-        drawGrid(lat, lon, gridSize, city)
-        city="???"
-        zip="?????"
+            locZip.value = zip
 
-        console.log("ERROR CHANGING LOCATION")
-    })
+            drawGrid()
+        })
+        .catch(function () {
+            drawGrid()
+            city = "???"
+            zip = "?????"
+            console.log("ERROR CHANGING LOCATION")
+        })
 }
 
-function clearM() {
-    disp.children[0].remove()
-    const m = document.createElement("div")
-    m.setAttribute("class", "map")
-    m.setAttribute("id", "map")
-    disp.append(m)
-}
 
-function zout(){
-    if (zoomLevel>4){
-        lonInc*=4;
-        latInc*=4;
-        zoomLevel-=2;
-        changeCoord();
+function displaySearches(index) {
+    if (index == 0) {
+        PREV.setAttribute("style", "visibility:hidden")
+    } else {
+        PREV.setAttribute("style", "visibility:visible")
     }
-}
 
-function zin(){
-    if(zoomLevel<12){
-        lonInc*=.25;
-        latInc*=.25;
-        zoomLevel+=2;
-        changeCoord();
-    }
-}
-
-function displaySearches(index){
-    if(index==0){
-        PREV.setAttribute("style","visibility:hidden");
-    }else{
-        PREV.setAttribute("style","visibility:visible");
-    }
-    
-    if (storedSearches[0].length-index<4){
-        let w=0;
-        for(let v=index; v<storedSearches[0].length; v++){
-            HDISP.children[w].children[0].textContent=storedSearches[0][v];
-            HDISP.children[w].children[1].textContent=storedSearches[1][v];
+    if (storedSearches[0].length - index < 4) {
+        let w = 0;
+        for (let v = index; v < storedSearches[0].length; v++) {
+            HDISP.children[w].children[0].textContent = storedSearches[0][v];
+            HDISP.children[w].children[1].textContent = storedSearches[1][v];
             w++;
         }
-        NEXT.setAttribute("style","visibility:hidden");
-        
-    }else{
-        let w=0;
-        for(let v=index; v<index+3; v++){
-            HDISP.children[w].children[0].textContent=storedSearches[0][v];
-            HDISP.children[w].children[1].textContent=storedSearches[1][v];
+        NEXT.setAttribute("style", "visibility:hidden")
+
+    } else {
+        let w = 0;
+        for (let v = index; v < index + 3; v++) {
+            HDISP.children[w].children[0].textContent = storedSearches[0][v]
+            HDISP.children[w].children[1].textContent = storedSearches[1][v]
             w++;
         }
-        NEXT.setAttribute("style","visibility:visible");
-    
+        NEXT.setAttribute("style", "visibility:visible")
+
     }
-    if(storedSearches[0].length==0){
-        ERASE.setAttribute("style","visibility:hidden");
-    }else{
-        ERASE.setAttribute("style","visibility:visible");
+    if (storedSearches[0].length == 0) {
+        ERASE.setAttribute("style", "visibility:hidden")
+    } else {
+        ERASE.setAttribute("style", "visibility:visible")
 
     }
 
 }
 
-function seePrev(){
-    fs-=3;
+function seePrev() {
+    fs -= 3;
     eraseSearchDisplay()
     displaySearches(fs)
 }
 
-function seeNext(){
-    fs+=3;
+function seeNext() {
+    fs += 3;
     eraseSearchDisplay()
     displaySearches(fs)
 
 }
 
-function eraseSearches(){
-    storedSearches = [[],[]];
-    localStorage.clear();//erase stored scoreboard
-    eraseSearchDisplay();
-    return;
-
+function eraseSearches() {
+    storedSearches = [[], []]
+    localStorage.clear()//erase stored scoreboard
+    eraseSearchDisplay()
+    return
 }
 
-function eraseSearchDisplay(){
-    ERASE.setAttribute("style","visibility:hidden");
-    NEXT.setAttribute("style","visibility:hidden");
-    PREV.setAttribute("style","visibility:hidden");
-    for(let v=0; v<3; v++){
-        HDISP.children[v].children[0].textContent="";
-        HDISP.children[v].children[1].textContent="";
+function eraseSearchDisplay() {
+    ERASE.setAttribute("style", "visibility:hidden")
+    NEXT.setAttribute("style", "visibility:hidden")
+    PREV.setAttribute("style", "visibility:hidden")
+    for (let v = 0; v < 3; v++) {
+        HDISP.children[v].children[0].textContent = ""
+        HDISP.children[v].children[1].textContent = ""
     }
-
-
 }
