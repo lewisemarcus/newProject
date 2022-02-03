@@ -267,8 +267,8 @@ function drawGrid() {
     let width = right - left
     let height = top - bottom
 
-    const rowSize = 9
-    const columnSize = Math.floor(rowSize * (width / height))
+    const rowSize = 11
+    const columnSize = 11
 
     circleRad = constRad / (map.getView().getResolutionForZoom(10) / getMapState().resolution)
 
@@ -278,13 +278,14 @@ function drawGrid() {
     const startLat = bottom + latInc / 2
     const startLon = left + lonInc / 2
 
-    for (row = 0; row < rowSize; row++) {
-        for (column = 0; column < columnSize; column++) {
+    for (row = 2; row < rowSize-2; row++) {
+        for (column = 2; column < columnSize-2; column++) {
             getPolutionData(startLon + lonInc * column, startLat + latInc * row).then(data => {
                 let [resLat, resLon] = data.latLon
                 if (isWater(resLon, resLat)) return
-                console.log(data.city.name.split(','))
-                if (data.city.name.split(',')[1] == city) {
+                //console.log(data.city.name.split(','))
+                reverseGeocode(resLat, resLon)
+                if (true) {
                         llTitle.textContent = "The pollution levels in " + city + " are:"
                         for (let m = 0; m < 7; m++) {
                             llContent.children[m].textContent = "";
@@ -337,6 +338,7 @@ function waitForCond(obj, cond, update = () => { return obj }, state = true) {
         check(obj)
     })
 }
+
 //change zip code when user adds zip code and clicks SUMBIT
 function changeZip() {
     zip = locZip.value
@@ -351,13 +353,23 @@ function changeZip() {
         } catch {
             city = "???"
         }
-        drawGrid()
+        if (lat && lon) {
+            goToCoord(lon, lat, drawGrid)
+        }
     }).catch(function () {
         zip = "enter valid zip"
         locZip.value = ""
         locZip.placeholder = zip
     })
 }
+function reverseGeocode(lat, lon) {
+    fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lon)
+      .then(function(response) {
+             return response.json();
+         }).then(function(json) {
+             console.log(json);
+         });
+ }
 
 function changeCoord() {
     const coords = ol.proj.transform(map.getView().getCenter(), 'EPSG:3857', 'EPSG:4326')
